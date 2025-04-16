@@ -183,17 +183,19 @@ $root_type_map=[
 //Tax
 //Temporary
 
+$erpnext_coa = ["county_code"=>"fr","name"=>"France - Plan Comptable General 2025 avec code","tree"=>[]];
+
 $sql = "SELECT rowid,pcg_type,account_number,label FROM llx_accounting_account where account_parent=0";
 $res = $db->query($sql);
 if (!$res){
 	dol_print_error($db);
 } else {
 	while ($obj = $db->fetch_object($res)){
-		$coa[$obj->label]=["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
+		$erpnext_coa['tree'][$obj->label]=["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
 	}
 }
 
-foreach ($coa as $account_number => $data) {
+foreach ($erpnext_coa['tree'] as $account_label => $data) {
 
 	$sql = "SELECT rowid,pcg_type,account_number,label FROM llx_accounting_account where account_parent=".(int)$data['id'];
 	$res = $db->query($sql);
@@ -203,30 +205,31 @@ foreach ($coa as $account_number => $data) {
 		$num = $db->num_rows($res);
 		if ($num > 0) {
 			while ($obj = $db->fetch_object($res)) {
-				if (!isset($coa[$account_number]["childs"][$obj->label])) {
-					$coa[$account_number]["childs"][$obj->label] = [];
+				if (!isset($erpnext_coa['tree'][$account_label]["childs"][$obj->label])) {
+					$erpnext_coa['tree'][$account_label]["childs"][$obj->label] = [];
 				}
-				$coa[$account_number]["childs"][$obj->label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
-				getChild($db,$coa[$account_number]["childs"][$obj->label],$coa[$account_number]);
+				$erpnext_coa['tree'][$account_label]["childs"][$obj->label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
+				getChild($db,$erpnext_coa['tree'][$account_label]["childs"][$obj->label],$erpnext_coa['tree'][$account_label]);
 			}
 		}
 	}
 }
-var_dump($coa);
+var_dump($erpnext_coa['tree']);
 
-//$erpnext_coa = ["county_code"=>"fr","name"=>"France - Plan Comptable General 2025 avec code","tree"=>[]];
-//foreach ($coa as $code => $data) {
+//$final_coa_tree=[];
+//foreach ($erpnext_coa['tree'] as $label => $data) {
 //	if (strpos($data["code"],"40") === 0) {
-//		$erpnext_coa["tree"][$data["label"]. ' (ACTIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
-//		$erpnext_coa["tree"][$data["label"]. ' (PASSIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//		$final_coa_tree[$label. ' (ACTIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//		$final_coa_tree[$label. ' (PASSIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
 //	} elseif (strlen($data["code"])==1) {
-//		$erpnext_coa["tree"][$data["label"]][] = ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//		$final_coa_tree[$label][] = ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
 //	} else {
-//		$erpnext_coa["tree"][$data["label"]][] = ["account_number"=>$data["code"]];
+//		$final_coa_tree[$label][] = ["account_number"=>$data["code"]];
 //	}
 //}
+//$erpnext_coa['tree']=$final_coa_tree;
 
-//var_dump($erpnext_coa);
+var_dump($erpnext_coa);
 function getChild($db,&$data,&$parent) {
 	//print 'getChildEntry code='.$data['code'].' ,parentcode='.$parent['code'].'<br>';
 
