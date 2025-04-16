@@ -191,7 +191,12 @@ if (!$res){
 	dol_print_error($db);
 } else {
 	while ($obj = $db->fetch_object($res)){
-		$erpnext_coa['tree'][$obj->label]=["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
+		if (strpos($obj->account_number,"4") === 0) {
+			$erpnext_coa['tree'][$obj->label. ' (ACTIF)'] = ["account_number" => $obj->account_number, "id" => $obj->rowid, "label" => $obj->label. ' (ACTIF)', "root_type" => 'Asset', "childs" => []];
+			$erpnext_coa['tree'][$obj->label. ' (PASSIF)'] = ["account_number" => $obj->account_number, "id" => $obj->rowid, "label" => $obj->label. ' (PASSIF)', "root_type" => 'Liability', "childs" => []];
+		} else {
+			$erpnext_coa['tree'][$obj->label] = ["account_number" => $obj->account_number, "id" => $obj->rowid, "label" => $obj->label, "root_type" => $root_type_map[$obj->pcg_type], "childs" => []];
+		}
 	}
 }
 
