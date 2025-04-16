@@ -238,19 +238,18 @@ function getChild($db,&$data,&$datacoa) {
 			$num=$db->num_rows($res);
 			if ($num>0) {
 				while ($obj = $db->fetch_object($res)) {
-					if (!isset($data["code"]["childs"])) {
-						$data["code"]= ["childs"=>[$obj->account_number=>[]]];
+
+					if (!isset($data["childs"][$obj->account_number]["childs"])) {
+						$data["childs"][$obj->account_number]["childs"]=[];
 					}
-					if (!isset($data["code"]["childs"][$obj->account_number])) {
-						$data["code"]= ["childs"=>[$obj->account_number=>[]]];
-					}
-					$data["code"]["childs"][$obj->account_number] = array_merge($data["code"]["childs"][$obj->account_number],["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label]);
+
+					$data["childs"][$obj->account_number]["childs"] = array_merge($data["childs"][$obj->account_number]["childs"],["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label]);
 					//var_dump($data["code"],$datacoa[$data["code"]]["childs"][$obj->account_number]);
-					getChild($db,$data["code"]["childs"][$obj->account_number],$datacoa);
+					getChild($db,$data["childs"][$obj->account_number],$datacoa);
 				}
 			} else {
-				return null;
-				//$datacoa[$data["code"]]["childs"][] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label];
+				//return null;
+				$datacoa[$data["code"]]["childs"][] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label];
 			}
 		}
 	} else {
