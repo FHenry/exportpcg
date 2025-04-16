@@ -189,7 +189,7 @@ if (!$res){
 	dol_print_error($db);
 } else {
 	while ($obj = $db->fetch_object($res)){
-		$coa[$obj->account_number]=["id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
+		$coa[$obj->account_number]=["code"=>$obj->account_number,"id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
 	}
 }
 
@@ -203,23 +203,34 @@ foreach ($coa as $code => $data) {
 		$num = $db->num_rows($res);
 		if ($num > 0) {
 			while ($obj = $db->fetch_object($res)) {
-				//$coa[$code][$obj->account_number] = ["label" => $obj->label, "root_type" => $root_type_map[$obj->pcg_type]];
+				if (!isset($coa[$code]["childs"][$obj->account_number])) {
+					$coa[$code]["childs"][$obj->account_number] = [];
+				}
+				//$coa[$code]["childs"][$obj->account_number] = array_merge($coa[$code]["childs"][$obj->account_number],["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]]);
 				$coa[$code]["childs"][$obj->account_number] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
 				getChild($db,$coa[$code]["childs"][$obj->account_number],$coa);
-				//$datacoa[$code][$obj->account_number] = getChild($db, $code, $datacoa);
 			}
 		}
 	}
 }
 var_dump($coa);
-foreach ($coa as $code => $data) {
 
-}
-
-function getChild($db,$data,&$datacoa) {
+//$erpnext_coa = ["county_code"=>"fr","name"=>"France - Plan Comptable General 2025 avec code","tree"=>[]];
+//foreach ($coa as $code => $data) {
+//	if (strpos($data["code"],"40") === 0) {
+//		$erpnext_coa["tree"][$data["label"]. ' (ACTIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//	} elseif (strlen($data["code"])==1) {
+//		$erpnext_coa["tree"][$data["label"]] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//	} else {
+//		$erpnext_coa["tree"][$data["label"]] += ["account_number"=>$data["code"]];
+//	}
+//}
+//
+//var_dump($erpnext_coa);
+function getChild($db,&$data,&$datacoa) {
 
 	if (!empty((int)$data['id'])) {
-		$sql = "SELECT pcg_type,account_number,label FROM llx_accounting_account where account_parent=".(int)$data['id'];
+		$sql = "SELECT rowid,pcg_type,account_number,label FROM llx_accounting_account where account_parent=".(int)$data['id'];
 		$res = $db->query($sql);
 		if (!$res){
 			dol_print_error($db);
@@ -227,12 +238,19 @@ function getChild($db,$data,&$datacoa) {
 			$num=$db->num_rows($res);
 			if ($num>0) {
 				while ($obj = $db->fetch_object($res)) {
-					if ($data["code"]=="401")
-					$datacoa[$data["code"]]["childs"][$obj->account_number] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
-					getChild($db,$datacoa[$data["code"]]["childs"][$obj->account_number],$datacoa);
+					if (!isset($data["code"]["childs"])) {
+						$data["code"]= ["childs"=>[$obj->account_number=>[]]];
+					}
+					if (!isset($data["code"]["childs"][$obj->account_number])) {
+						$data["code"]= ["childs"=>[$obj->account_number=>[]]];
+					}
+					$data["code"]["childs"][$obj->account_number] = array_merge($data["code"]["childs"][$obj->account_number],["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label]);
+					//var_dump($data["code"],$datacoa[$data["code"]]["childs"][$obj->account_number]);
+					getChild($db,$data["code"]["childs"][$obj->account_number],$datacoa);
 				}
 			} else {
 				return null;
+				//$datacoa[$data["code"]]["childs"][] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label];
 			}
 		}
 	} else {
