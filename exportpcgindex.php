@@ -189,11 +189,11 @@ if (!$res){
 	dol_print_error($db);
 } else {
 	while ($obj = $db->fetch_object($res)){
-		$coa[$obj->account_number]=["code"=>$obj->account_number,"id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
+		$coa[$obj->label]=["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label"=>$obj->label,"root_type"=>$root_type_map[$obj->pcg_type],"childs"=>[]];
 	}
 }
 
-foreach ($coa as $code => $data) {
+foreach ($coa as $account_number => $data) {
 
 	$sql = "SELECT rowid,pcg_type,account_number,label FROM llx_accounting_account where account_parent=".(int)$data['id'];
 	$res = $db->query($sql);
@@ -203,12 +203,11 @@ foreach ($coa as $code => $data) {
 		$num = $db->num_rows($res);
 		if ($num > 0) {
 			while ($obj = $db->fetch_object($res)) {
-				if (!isset($coa[$code]["childs"][$obj->account_number])) {
-					$coa[$code]["childs"][$obj->account_number] = [];
+				if (!isset($coa[$account_number]["childs"][$obj->label])) {
+					$coa[$account_number]["childs"][$obj->label] = [];
 				}
-				//$coa[$code]["childs"][$obj->account_number] = array_merge($coa[$code]["childs"][$obj->account_number],["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]]);
-				$coa[$code]["childs"][$obj->account_number] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
-				getChild($db,$coa[$code]["childs"][$obj->account_number],$coa);
+				$coa[$account_number]["childs"][$obj->label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
+				getChild($db,$coa[$account_number]["childs"][$obj->label],$coa[$account_number]);
 			}
 		}
 	}
@@ -219,37 +218,43 @@ var_dump($coa);
 //foreach ($coa as $code => $data) {
 //	if (strpos($data["code"],"40") === 0) {
 //		$erpnext_coa["tree"][$data["label"]. ' (ACTIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//		$erpnext_coa["tree"][$data["label"]. ' (PASSIF)'] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
 //	} elseif (strlen($data["code"])==1) {
-//		$erpnext_coa["tree"][$data["label"]] += ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
+//		$erpnext_coa["tree"][$data["label"]][] = ["account_number"=>$data["code"], "root_type"=>$data["root_type"]];
 //	} else {
-//		$erpnext_coa["tree"][$data["label"]] += ["account_number"=>$data["code"]];
+//		$erpnext_coa["tree"][$data["label"]][] = ["account_number"=>$data["code"]];
 //	}
 //}
-//
-//var_dump($erpnext_coa);
-function getChild($db,&$data,&$datacoa) {
 
+//var_dump($erpnext_coa);
+function getChild($db,&$data,&$parent) {
+	//print 'getChildEntry code='.$data['code'].' ,parentcode='.$parent['code'].'<br>';
+
+	//var_dump('getChildEntry','code='.$data['code'],'parentcode='.$parent['code'],$data,$parent);
 	if (!empty((int)$data['id'])) {
 		$sql = "SELECT rowid,pcg_type,account_number,label FROM llx_accounting_account where account_parent=".(int)$data['id'];
+
 		$res = $db->query($sql);
 		if (!$res){
 			dol_print_error($db);
 		} else {
 			$num=$db->num_rows($res);
+			//print 'numforCode='.$num.'<br>';
+
 			if ($num>0) {
 				while ($obj = $db->fetch_object($res)) {
 
-					if (!isset($data["childs"][$obj->account_number]["childs"])) {
-						$data["childs"][$obj->account_number]["childs"]=[];
+					if (!isset($data["childs"][$obj->label])) {
+						$data["childs"][$obj->label]=[];
 					}
 
-					$data["childs"][$obj->account_number]["childs"] = array_merge($data["childs"][$obj->account_number]["childs"],["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label]);
-					//var_dump($data["code"],$datacoa[$data["code"]]["childs"][$obj->account_number]);
-					getChild($db,$data["childs"][$obj->account_number],$datacoa);
+					$data["childs"][$obj->label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label];
+
+					getChild($db, $data["childs"][$obj->label], $data);
+
 				}
 			} else {
-				//return null;
-				$datacoa[$data["code"]]["childs"][] = ["code"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label];
+				return null;
 			}
 		}
 	} else {
