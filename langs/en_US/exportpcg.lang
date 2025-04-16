@@ -1,0 +1,42 @@
+# Translation file
+
+#
+# Generic
+#
+
+# Module label 'ModuleExportpcgName'
+ModuleExportpcgName = Exportpcg
+# Module description 'ModuleExportpcgDesc'
+ModuleExportpcgDesc = Exportpcg description
+
+#
+# Admin page
+#
+ExportpcgSetup = Exportpcg setup
+Settings = Settings
+ExportpcgSetupPage = Exportpcg setup page
+NewSection=New section
+EXPORTPCG_MYPARAM1 = My param 1
+EXPORTPCG_MYPARAM1Tooltip = My param 1 tooltip
+EXPORTPCG_MYPARAM2=My param 2
+EXPORTPCG_MYPARAM2Tooltip=My param 2 tooltip
+
+
+#
+# About page
+#
+About = About
+ExportpcgAbout = About Exportpcg
+ExportpcgAboutPage = Exportpcg about page
+
+#
+# Sample page
+#
+ExportpcgArea = Home Exportpcg
+MyPageName = My page name
+
+#
+# Sample widget
+#
+MyWidget = My widget
+MyWidgetDescription = My widget description
