@@ -210,11 +210,33 @@ foreach ($erpnext_coa['tree'] as $account_label => $data) {
 		$num = $db->num_rows($res);
 		if ($num > 0) {
 			while ($obj = $db->fetch_object($res)) {
-				if (!isset($erpnext_coa['tree'][$account_label]["childs"][$obj->label])) {
-					$erpnext_coa['tree'][$account_label]["childs"][$obj->label] = [];
+
+
+				if (strpos($obj->account_number,"40") === 0) {
+					$account_new_label = $obj->label. ' (PASSIF)';
+					if (!isset($erpnext_coa['tree'][$account_label]["childs"][$account_new_label])) {
+						$erpnext_coa['tree'][$account_label]["childs"][$account_new_label] = [];
+					}
+					$erpnext_coa['tree'][$account_label]["childs"][$account_new_label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $account_new_label,"childs"=>[]];
+					getChild($db,$erpnext_coa['tree'][$account_label]["childs"][$account_new_label],$erpnext_coa['tree'][$account_label]);
+				} elseif (strpos($obj->account_number,"41") === 0) {
+					$account_new_label = $obj->label. ' (ACTIF)';
+					if (!isset($erpnext_coa['tree'][$account_label]["childs"][$account_new_label])) {
+						$erpnext_coa['tree'][$account_label]["childs"][$account_new_label] = [];
+					}
+					$erpnext_coa['tree'][$account_label]["childs"][$account_new_label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $account_new_label,"childs"=>[]];
+					getChild($db,$erpnext_coa['tree'][$account_label]["childs"][$account_new_label],$erpnext_coa['tree'][$account_label]);
 				}
-				$erpnext_coa['tree'][$account_label]["childs"][$obj->label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $obj->label,"childs"=>[]];
-				getChild($db,$erpnext_coa['tree'][$account_label]["childs"][$obj->label],$erpnext_coa['tree'][$account_label]);
+				else {
+					$account_new_label = $obj->label;
+					if (!isset($erpnext_coa['tree'][$account_label]["childs"][$account_new_label])) {
+						$erpnext_coa['tree'][$account_label]["childs"][$account_new_label] = [];
+					}
+					$erpnext_coa['tree'][$account_label]["childs"][$account_new_label] = ["account_number"=>$obj->account_number,"id"=>$obj->rowid,"label" => $account_new_label,"childs"=>[]];
+					getChild($db,$erpnext_coa['tree'][$account_label]["childs"][$account_new_label],$erpnext_coa['tree'][$account_label]);
+				}
+
+
 			}
 		}
 	}
@@ -234,7 +256,9 @@ var_dump($erpnext_coa['tree']);
 //}
 //$erpnext_coa['tree']=$final_coa_tree;
 
-var_dump($erpnext_coa);
+//var_dump($erpnext_coa);
+
+print json_encode($erpnext_coa);
 function getChild($db,&$data,&$parent) {
 	//print 'getChildEntry code='.$data['code'].' ,parentcode='.$parent['code'].'<br>';
 
